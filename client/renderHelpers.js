@@ -1,7 +1,9 @@
-import { fetchAllPlayers } from './ajaxHelpers';
+import { addNewPlayer, fetchAllPlayers, fetchSinglePlayer, removePlayer} from './ajaxHelpers';
 
 const playerContainer = document.getElementById('all-players-container');
 const newPlayerFormContainer = document.getElementById('new-player-form');
+
+
 
 export const renderAllPlayers = (playerList) => {
   // First check if we have any data before trying to render it!
@@ -22,6 +24,7 @@ export const renderAllPlayers = (playerList) => {
         </div>
         <img src="${pup.imageUrl}" alt="photo of ${pup.name} the puppy">
         <button class="detail-button" data-id=${pup.id}>See details</button>
+        <button class="remove-button" data-id=${pup.id}>Remove</button>
       </div>
     `;
     playerContainerHTML += pupHTML;
@@ -37,9 +40,20 @@ export const renderAllPlayers = (playerList) => {
   for (let i = 0; i < detailButtons.length; i++) {
     const button = detailButtons[i];
     button.addEventListener('click', async () => {
-      /*
-        YOUR CODE HERE
-      */
+    
+     let response = await fetchSinglePlayer(button.dataset.id)
+    console.log(button)
+    console.log(response.data.player)
+    renderSinglePlayer(response.data.player)
+    });
+  }
+  let deleteButton = [...document.getElementsByClassName('remove-button')];
+  for (let i = 0; i < deleteButton.length; i++) {
+    const button = deleteButton[i];
+    button.addEventListener('click', async () => {
+      await removePlayer(button.dataset.id)
+    const players = await fetchAllPlayers();
+    renderAllPlayers(players);
     });
   }
 };
@@ -61,11 +75,24 @@ export const renderSinglePlayer = (playerObj) => {
       <img src="${playerObj.imageUrl}" alt="photo of ${
     playerObj.name
   } the puppy">
-      <button id="see-all">Back to all players</button>
+      <button class="see-all">Back to all players</button>
     </div>
   `;
 
   playerContainer.innerHTML = pupHTML;
+
+
+  let goHomeButton = [...document.getElementsByClassName('see-all')];
+  for (let i = 0; i < goHomeButton.length; i++) {
+    const button = goHomeButton[i];
+    button.addEventListener('click', async () => {
+    
+     let response = await fetchAllPlayers()
+    console.log(button)
+    console.log(response)
+    renderAllPlayers(response);
+    });
+  }
 };
 
 export const renderNewPlayerForm = () => {
@@ -82,8 +109,17 @@ export const renderNewPlayerForm = () => {
 
   let form = document.querySelector('#new-player-form > form');
   form.addEventListener('submit', async (event) => {
-    /*
-      YOUR CODE HERE
-    */
+    event.preventDefault();
+
+    let playerData = {
+      name: form.elements.breed.value,
+      breed: form.elements.breed.value,
+    };
+    console.log(playerData)
+    addNewPlayer(playerData);
+
+    const reload = await fetchAllPlayers();
+    renderAllPlayers(reload);
+    renderNewPlayerForm() 
   });
 };
